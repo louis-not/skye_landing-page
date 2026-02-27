@@ -194,4 +194,16 @@
   }
 
   requestAnimationFrame(loop);
+
+  // --- Sound toggle ---
+  const video = document.getElementById('bg-video');
+  const soundBtn = document.getElementById('sound-toggle');
+  const iconMuted = document.getElementById('icon-muted');
+  const iconUnmuted = document.getElementById('icon-unmuted');
+
+  soundBtn.addEventListener('click', function () {
+    video.muted = !video.muted;
+    iconMuted.style.display = video.muted ? '' : 'none';
+    iconUnmuted.style.display = video.muted ? 'none' : '';
+  });
 })();

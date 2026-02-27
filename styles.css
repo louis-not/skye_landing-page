@@ -154,6 +154,30 @@ body {
   color: rgba(255, 255, 255, 0.8);
 }
 
+/* Sound toggle */
+#sound-toggle {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 10;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: color 0.4s ease, border-color 0.4s ease;
+}
+
+#sound-toggle:hover {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
 /* Side navigator */
 #side-nav {
   position: fixed;
