@@ -25,9 +25,11 @@
 
   // --- Reliable smooth scroll (works on mobile + desktop) ---
   let scrollAnim = null;
+  let isAutoScrolling = false;
 
   function smoothScrollTo(targetY) {
     if (scrollAnim) cancelAnimationFrame(scrollAnim);
+    isAutoScrolling = true;
     const startY = window.scrollY;
     const dist = targetY - startY;
     const duration = Math.min(1200, Math.max(400, Math.abs(dist) * 0.15));
@@ -42,10 +44,28 @@
         scrollAnim = requestAnimationFrame(step);
       } else {
         scrollAnim = null;
+        isAutoScrolling = false;
       }
     }
     scrollAnim = requestAnimationFrame(step);
   }
+
+  // --- Auto-snap: after manual scrolling stops, ease to nearest section ---
+  let snapTimer = null;
+
+  window.addEventListener('scroll', function () {
+    if (isAutoScrolling) return;
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(function () {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+      const nearest = getActiveSection(progress);
+      const targetProgress = sectionMids[nearest];
+      if (Math.abs(progress - targetProgress) > 0.005) {
+        smoothScrollTo(targetProgress * maxScroll);
+      }
+    }, 600);
+  });
 
   // --- Side navigator ---
   const dots = document.querySelectorAll('.nav-dot');
@@ -155,17 +175,17 @@
 
     // --- Text opacities ---
     let helloOpacity;
-    if (progress < 0.06) {
+    if (progress < 0.08) {
       helloOpacity = 1;
     } else {
-      helloOpacity = 1 - ease(segment(progress, 0.06, 0.14));
+      helloOpacity = 1 - ease(segment(progress, 0.08, 0.14));
     }
 
-    const skyeOpacity  = fadeInOut(progress, 0.18, 0.25, 0.30, 0.36);
-    const dayOpacity   = fadeInOut(progress, 0.40, 0.46, 0.51, 0.57);
-    const learnOpacity = fadeInOut(progress, 0.61, 0.67, 0.71, 0.76);
-    const slowOpacity  = fadeInOut(progress, 0.78, 0.83, 0.87, 0.91);
-    const safeOpacity  = fadeInOut(progress, 0.91, 0.93, 0.95, 0.97);
+    const skyeOpacity  = fadeInOut(progress, 0.18, 0.24, 0.31, 0.36);
+    const dayOpacity   = fadeInOut(progress, 0.40, 0.45, 0.52, 0.57);
+    const learnOpacity = fadeInOut(progress, 0.61, 0.66, 0.72, 0.76);
+    const slowOpacity  = fadeInOut(progress, 0.78, 0.82, 0.88, 0.91);
+    const safeOpacity  = fadeInOut(progress, 0.91, 0.925, 0.955, 0.97);
 
     let ctaOpacity;
     if (progress < 0.98) {
