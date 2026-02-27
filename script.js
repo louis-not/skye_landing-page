@@ -1,72 +1,133 @@
 (function () {
   const root = document.documentElement;
   const vignette = document.getElementById('vignette');
+  const ctaSection = document.getElementById('cta-section');
 
-  // Easing: smooth ease-in-out
   function ease(t) {
     return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
   }
 
-  // Clamp a value between 0 and 1
   function clamp01(v) {
     return Math.min(1, Math.max(0, v));
   }
 
-  // Map scroll position to a 0–1 range within a segment
   function segment(progress, start, end) {
     return clamp01((progress - start) / (end - start));
   }
+
+  function fadeInOut(progress, inStart, inEnd, outStart, outEnd) {
+    if (progress < inStart) return 0;
+    if (progress < inEnd) return ease(segment(progress, inStart, inEnd));
+    if (progress < outStart) return 1;
+    if (progress < outEnd) return 1 - ease(segment(progress, outStart, outEnd));
+    return 0;
+  }
+
+  // Timeline (scroll %):
+  //
+  // 0–6%    : Hello visible on black
+  // 6–14%   : Hello fades out
+  // 8–22%   : Vignette opens
+  //
+  // 18–25%  : "I'm Skye" fades in
+  // 25–30%  : visible
+  // 30–36%  : fades out
+  // 36–39%  : dark pulse
+  //
+  // 40–46%  : "Let's learn" fades in
+  // 46–51%  : visible
+  // 51–57%  : fades out
+  // 57–60%  : dark pulse
+  //
+  // 61–67%  : "Talk about your day" fades in
+  // 67–71%  : visible
+  // 71–76%  : fades out
+  // 76–79%  : dark pulse
+  //
+  // 80–85%  : "Hold up" fades in
+  // 85–88%  : visible
+  // 88–92%  : fades out
+  // 92–94%  : dark pulse (vignette closes fully)
+  //
+  // 92–97%  : "No Worries" fades in
+  // 97–100% : visible, then vignette closes to black
+  //
+  // 98–100% : CTA fades in on black
 
   function loop(timestamp) {
     const scrollTop = window.scrollY;
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     const progress = maxScroll > 0 ? scrollTop / maxScroll : 0;
 
-    // --- Pulse ---
+    // --- Pulse (continuous glow) ---
     const t = (timestamp % 3000) / 3000;
     const pulseFactor = (Math.sin(t * Math.PI) + 1) / 2;
     root.style.setProperty('--glow', pulseFactor);
 
     // --- Vignette radius ---
     const maxRadius = Math.max(window.innerWidth, window.innerHeight) * 0.8;
-    let radiusT = ease(segment(progress, 0.20, 0.55));
-    const baseRadius = radiusT * maxRadius;
-    // Subtle pulse on the radius: +/- 3% of maxRadius
+
+    // Open vignette in the beginning, close it at the end for CTA
+    let radiusOpen = ease(segment(progress, 0.08, 0.22));
+    let radiusClose = 1 - ease(segment(progress, 0.92, 0.98));
+    let radiusT = radiusOpen * radiusClose;
+
+    // Dark pulses between text transitions
+    const pulse1 = 1 - 0.25 * Math.max(0, 1 - Math.abs((progress - 0.375) / 0.02));
+    const pulse2 = 1 - 0.25 * Math.max(0, 1 - Math.abs((progress - 0.585) / 0.02));
+    const pulse3 = 1 - 0.25 * Math.max(0, 1 - Math.abs((progress - 0.775) / 0.02));
+    const darkPulse = Math.min(pulse1, pulse2, pulse3);
+
+    const baseRadius = radiusT * maxRadius * darkPulse;
     const radius = baseRadius + pulseFactor * maxRadius * 0.03;
 
-    // --- Vignette edge opacity pulse ---
-    // Edges breathe slightly: darken/lighten by a small amount
     const edgePulse = 0.08 * pulseFactor;
+    const darkExtra = (1 - darkPulse) * 0.3;
 
     vignette.style.background = `radial-gradient(
       circle ${radius}px at 50% 50%,
       transparent 0%,
-      rgba(0, 0, 0, ${0.4 + edgePulse}) 40%,
-      rgba(0, 0, 0, ${0.75 + edgePulse}) 60%,
-      rgba(0, 0, 0, ${0.92 + edgePulse * 0.5}) 80%,
+      rgba(0, 0, 0, ${0.4 + edgePulse + darkExtra}) 40%,
+      rgba(0, 0, 0, ${0.75 + edgePulse + darkExtra}) 60%,
+      rgba(0, 0, 0, ${0.92 + edgePulse * 0.5 + darkExtra}) 80%,
       #000 100%
     )`;
 
-    // --- "Hello" text opacity ---
+    // --- Text opacities ---
     let helloOpacity;
-    if (progress < 0.15) {
+    if (progress < 0.06) {
       helloOpacity = 1;
     } else {
-      helloOpacity = 1 - ease(segment(progress, 0.15, 0.35));
+      helloOpacity = 1 - ease(segment(progress, 0.06, 0.14));
     }
 
-    // --- "I'm Skye" text opacity ---
-    let skyeOpacity;
-    if (progress < 0.40) {
-      skyeOpacity = 0;
-    } else if (progress < 0.60) {
-      skyeOpacity = ease(segment(progress, 0.40, 0.60));
+    const skyeOpacity  = fadeInOut(progress, 0.18, 0.25, 0.30, 0.36);
+    const learnOpacity = fadeInOut(progress, 0.40, 0.46, 0.51, 0.57);
+    const dayOpacity   = fadeInOut(progress, 0.61, 0.67, 0.71, 0.76);
+    const slowOpacity  = fadeInOut(progress, 0.80, 0.85, 0.88, 0.92);
+    const safeOpacity  = fadeInOut(progress, 0.92, 0.96, 0.97, 0.99);
+
+    let ctaOpacity;
+    if (progress < 0.98) {
+      ctaOpacity = 0;
     } else {
-      skyeOpacity = 1;
+      ctaOpacity = ease(segment(progress, 0.98, 1.0));
+    }
+
+    // Enable pointer events on CTA when visible
+    if (ctaOpacity > 0.5) {
+      ctaSection.classList.add('active');
+    } else {
+      ctaSection.classList.remove('active');
     }
 
     root.style.setProperty('--hello-opacity', helloOpacity);
     root.style.setProperty('--skye-opacity', skyeOpacity);
+    root.style.setProperty('--learn-opacity', learnOpacity);
+    root.style.setProperty('--day-opacity', dayOpacity);
+    root.style.setProperty('--slow-opacity', slowOpacity);
+    root.style.setProperty('--safe-opacity', safeOpacity);
+    root.style.setProperty('--cta-opacity', ctaOpacity);
 
     requestAnimationFrame(loop);
   }

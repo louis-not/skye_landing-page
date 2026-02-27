@@ -71,7 +71,11 @@ body {
   opacity: var(--skye-opacity, 0);
 }
 
-#text-skye p {
+#text-skye p,
+#text-learn p,
+#text-day p,
+#text-slow p,
+#text-safe p {
   font-size: clamp(1.05rem, 1.8vw, 1.35rem);
   font-weight: 300;
   line-height: 1.8;
@@ -81,8 +85,77 @@ body {
     0 0 calc(var(--glow, 0) * 40px) rgba(255, 255, 255, calc(var(--glow, 0) * 0.5));
 }
 
+#text-learn { opacity: var(--learn-opacity, 0); }
+#text-day { opacity: var(--day-opacity, 0); }
+#text-slow { opacity: var(--slow-opacity, 0); }
+#text-safe { opacity: var(--safe-opacity, 0); }
+
+/* Final CTA section */
+#cta-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  opacity: var(--cta-opacity, 0);
+  pointer-events: none;
+}
+
+#cta-section.active {
+  pointer-events: auto;
+}
+
+.cta-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.cta-heading {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 300;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 0.8rem 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  text-decoration: none;
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.cta-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+
+.creator-link {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  transition: color 0.3s;
+}
+
+.creator-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* Scroll spacer — drives the scroll length */
 #scroll-spacer {
-  height: 300vh;
+  height: 900vh;
   pointer-events: none;
 }
