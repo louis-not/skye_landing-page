@@ -143,8 +143,8 @@
     }
 
     const skyeOpacity  = fadeInOut(progress, 0.18, 0.25, 0.30, 0.36);
-    const learnOpacity = fadeInOut(progress, 0.40, 0.46, 0.51, 0.57);
-    const dayOpacity   = fadeInOut(progress, 0.61, 0.67, 0.71, 0.76);
+    const dayOpacity   = fadeInOut(progress, 0.40, 0.46, 0.51, 0.57);
+    const learnOpacity = fadeInOut(progress, 0.61, 0.67, 0.71, 0.76);
     const slowOpacity  = fadeInOut(progress, 0.80, 0.85, 0.88, 0.92);
     const safeOpacity  = fadeInOut(progress, 0.92, 0.96, 0.97, 0.99);
 
