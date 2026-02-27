@@ -23,61 +23,75 @@
     return 0;
   }
 
-  // Timeline (scroll %):
-  //
-  // 0–6%    : Hello visible on black
-  // 6–14%   : Hello fades out
-  // 8–22%   : Vignette opens
-  //
-  // 18–25%  : "I'm Skye" fades in
-  // 25–30%  : visible
-  // 30–36%  : fades out
-  // 36–39%  : dark pulse
-  //
-  // 40–46%  : "Let's learn" fades in
-  // 46–51%  : visible
-  // 51–57%  : fades out
-  // 57–60%  : dark pulse
-  //
-  // 61–67%  : "Talk about your day" fades in
-  // 67–71%  : visible
-  // 71–76%  : fades out
-  // 76–79%  : dark pulse
-  //
-  // 80–85%  : "Hold up" fades in
-  // 85–88%  : visible
-  // 88–92%  : fades out
-  // 92–94%  : dark pulse (vignette closes fully)
-  //
-  // 92–97%  : "No Worries" fades in
-  // 97–100% : visible, then vignette closes to black
-  //
-  // 98–100% : CTA fades in on black
+  // --- Reliable smooth scroll (works on mobile + desktop) ---
+  let scrollAnim = null;
+
+  function smoothScrollTo(targetY) {
+    if (scrollAnim) cancelAnimationFrame(scrollAnim);
+    const startY = window.scrollY;
+    const dist = targetY - startY;
+    const duration = Math.min(1200, Math.max(400, Math.abs(dist) * 0.15));
+    const startTime = performance.now();
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const eased = ease(t);
+      window.scrollTo(0, startY + dist * eased);
+      if (t < 1) {
+        scrollAnim = requestAnimationFrame(step);
+      } else {
+        scrollAnim = null;
+      }
+    }
+    scrollAnim = requestAnimationFrame(step);
+  }
 
   // --- Side navigator ---
   const dots = document.querySelectorAll('.nav-dot');
   const navUp = document.querySelector('.nav-up');
   const navDown = document.querySelector('.nav-down');
 
-  // Scroll targets — center of each text's fully-visible window
-  const sectionMids = [0.03, 0.275, 0.485, 0.69, 0.865, 0.945, 0.995];
+  // Timeline — text fully-visible windows and their centers:
+  //
+  // 0. Hello        : visible 0.00–0.06   → target 0.03
+  // 1. Skye         : visible 0.25–0.30   → target 0.275
+  //    (vignette fully open by 0.22)
+  // 2. Day          : visible 0.46–0.51   → target 0.485
+  //    (dark pulse at 0.375 resolved)
+  // 3. Learn        : visible 0.67–0.71   → target 0.69
+  //    (dark pulse at 0.585 resolved)
+  // 4. Slow         : visible 0.83–0.87   → target 0.85
+  //    (dark pulse at 0.775 resolved)
+  // 5. Safe         : visible 0.92–0.95   → target 0.935
+  //    (vignette still open, closes at 0.97)
+  // 6. CTA          : visible 0.99–1.00   → target 1.0
 
-  function scrollToProgress(target) {
+  const sectionMids = [0.03, 0.275, 0.485, 0.69, 0.85, 0.935, 1.0];
+
+  function scrollToSection(idx) {
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    window.scrollTo({ top: target * maxScroll, behavior: 'smooth' });
+    smoothScrollTo(sectionMids[idx] * maxScroll);
   }
 
   function getActiveSection(progress) {
-    for (let i = sectionMids.length - 1; i >= 0; i--) {
-      if (progress >= sectionMids[i] - 0.08) return i;
+    // Find which section's visible window we're closest to
+    const centers = sectionMids;
+    let best = 0;
+    let bestDist = Math.abs(progress - centers[0]);
+    for (let i = 1; i < centers.length; i++) {
+      const d = Math.abs(progress - centers[i]);
+      if (d < bestDist) {
+        bestDist = d;
+        best = i;
+      }
     }
-    return 0;
+    return best;
   }
 
   dots.forEach(function (dot) {
     dot.addEventListener('click', function () {
-      var idx = parseInt(this.dataset.section);
-      scrollToProgress(sectionMids[idx]);
+      scrollToSection(parseInt(this.dataset.section));
     });
   });
 
@@ -85,14 +99,14 @@
     var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     var progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
     var current = getActiveSection(progress);
-    if (current > 0) scrollToProgress(sectionMids[current - 1]);
+    if (current > 0) scrollToSection(current - 1);
   });
 
   navDown.addEventListener('click', function () {
     var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     var progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
     var current = getActiveSection(progress);
-    if (current < sectionMids.length - 1) scrollToProgress(sectionMids[current + 1]);
+    if (current < sectionMids.length - 1) scrollToSection(current + 1);
   });
 
   function loop(timestamp) {
@@ -108,9 +122,9 @@
     // --- Vignette radius ---
     const maxRadius = Math.max(window.innerWidth, window.innerHeight) * 0.8;
 
-    // Open vignette in the beginning, close it at the end for CTA
+    // Open vignette early, close it late for CTA
     let radiusOpen = ease(segment(progress, 0.08, 0.22));
-    let radiusClose = 1 - ease(segment(progress, 0.96, 0.99));
+    let radiusClose = 1 - ease(segment(progress, 0.97, 1.0));
     let radiusT = radiusOpen * radiusClose;
 
     // Dark pulses between text transitions
@@ -145,8 +159,8 @@
     const skyeOpacity  = fadeInOut(progress, 0.18, 0.25, 0.30, 0.36);
     const dayOpacity   = fadeInOut(progress, 0.40, 0.46, 0.51, 0.57);
     const learnOpacity = fadeInOut(progress, 0.61, 0.67, 0.71, 0.76);
-    const slowOpacity  = fadeInOut(progress, 0.80, 0.85, 0.88, 0.92);
-    const safeOpacity  = fadeInOut(progress, 0.92, 0.96, 0.97, 0.99);
+    const slowOpacity  = fadeInOut(progress, 0.78, 0.83, 0.87, 0.91);
+    const safeOpacity  = fadeInOut(progress, 0.91, 0.93, 0.95, 0.97);
 
     let ctaOpacity;
     if (progress < 0.98) {

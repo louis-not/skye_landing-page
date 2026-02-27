@@ -63,8 +63,8 @@ body {
   font-weight: 300;
   letter-spacing: 0.05em;
   text-shadow:
-    0 0 calc(var(--glow, 0) * 20px) rgba(255, 255, 255, var(--glow, 0)),
-    0 0 calc(var(--glow, 0) * 40px) rgba(255, 255, 255, calc(var(--glow, 0) * 0.5));
+    0 0 calc(var(--glow, 0) * 35px) rgba(255, 255, 255, var(--glow, 0)),
+    0 0 calc(var(--glow, 0) * 70px) rgba(255, 255, 255, calc(var(--glow, 0) * 0.4));
 }
 
 #text-skye {
@@ -81,8 +81,8 @@ body {
   line-height: 1.8;
   letter-spacing: 0.03em;
   text-shadow:
-    0 0 calc(var(--glow, 0) * 20px) rgba(255, 255, 255, var(--glow, 0)),
-    0 0 calc(var(--glow, 0) * 40px) rgba(255, 255, 255, calc(var(--glow, 0) * 0.5));
+    0 0 calc(var(--glow, 0) * 35px) rgba(255, 255, 255, var(--glow, 0)),
+    0 0 calc(var(--glow, 0) * 70px) rgba(255, 255, 255, calc(var(--glow, 0) * 0.4));
 }
 
 #text-learn { opacity: var(--learn-opacity, 0); }
