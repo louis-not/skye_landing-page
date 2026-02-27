@@ -54,6 +54,47 @@
   //
   // 98–100% : CTA fades in on black
 
+  // --- Side navigator ---
+  const dots = document.querySelectorAll('.nav-dot');
+  const navUp = document.querySelector('.nav-up');
+  const navDown = document.querySelector('.nav-down');
+
+  // Scroll targets — center of each text's fully-visible window
+  const sectionMids = [0.03, 0.275, 0.485, 0.69, 0.865, 0.945, 0.995];
+
+  function scrollToProgress(target) {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    window.scrollTo({ top: target * maxScroll, behavior: 'smooth' });
+  }
+
+  function getActiveSection(progress) {
+    for (let i = sectionMids.length - 1; i >= 0; i--) {
+      if (progress >= sectionMids[i] - 0.08) return i;
+    }
+    return 0;
+  }
+
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function () {
+      var idx = parseInt(this.dataset.section);
+      scrollToProgress(sectionMids[idx]);
+    });
+  });
+
+  navUp.addEventListener('click', function () {
+    var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    var progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+    var current = getActiveSection(progress);
+    if (current > 0) scrollToProgress(sectionMids[current - 1]);
+  });
+
+  navDown.addEventListener('click', function () {
+    var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    var progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+    var current = getActiveSection(progress);
+    if (current < sectionMids.length - 1) scrollToProgress(sectionMids[current + 1]);
+  });
+
   function loop(timestamp) {
     const scrollTop = window.scrollY;
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -69,7 +110,7 @@
 
     // Open vignette in the beginning, close it at the end for CTA
     let radiusOpen = ease(segment(progress, 0.08, 0.22));
-    let radiusClose = 1 - ease(segment(progress, 0.92, 0.98));
+    let radiusClose = 1 - ease(segment(progress, 0.96, 0.99));
     let radiusT = radiusOpen * radiusClose;
 
     // Dark pulses between text transitions
@@ -128,6 +169,12 @@
     root.style.setProperty('--slow-opacity', slowOpacity);
     root.style.setProperty('--safe-opacity', safeOpacity);
     root.style.setProperty('--cta-opacity', ctaOpacity);
+
+    // Update active nav dot
+    var activeIdx = getActiveSection(progress);
+    dots.forEach(function (dot, i) {
+      dot.classList.toggle('active', i === activeIdx);
+    });
 
     requestAnimationFrame(loop);
   }
