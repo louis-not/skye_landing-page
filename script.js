@@ -114,6 +114,11 @@
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     const progress = maxScroll > 0 ? scrollTop / maxScroll : 0;
 
+    // --- Sound button pulse (first page only) ---
+    if (progress > 0.06) {
+      soundBtn.classList.remove('pulse');
+    }
+
     // --- Pulse (continuous glow) ---
     const t = (timestamp % 3000) / 3000;
     const pulseFactor = (Math.sin(t * Math.PI) + 1) / 2;
@@ -205,5 +210,6 @@
     video.muted = !video.muted;
     iconMuted.style.display = video.muted ? '' : 'none';
     iconUnmuted.style.display = video.muted ? 'none' : '';
+    soundBtn.classList.remove('pulse');
   });
 })();
