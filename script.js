@@ -1,6 +1,6 @@
 (function () {
   const root = document.documentElement;
-  let ticking = false;
+  const vignette = document.getElementById('vignette');
 
   // Easing: smooth ease-in-out
   function ease(t) {
@@ -17,22 +17,37 @@
     return clamp01((progress - start) / (end - start));
   }
 
-  function update() {
+  function loop(timestamp) {
     const scrollTop = window.scrollY;
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     const progress = maxScroll > 0 ? scrollTop / maxScroll : 0;
 
+    // --- Pulse ---
+    const t = (timestamp % 3000) / 3000;
+    const pulseFactor = (Math.sin(t * Math.PI) + 1) / 2;
+    root.style.setProperty('--glow', pulseFactor);
+
     // --- Vignette radius ---
-    // 0–20%: stays at 0 (fully black, "Hello" visible)
-    // 20–55%: expands from 0 to max
-    // 55–100%: stays at max
     const maxRadius = Math.max(window.innerWidth, window.innerHeight) * 0.8;
     let radiusT = ease(segment(progress, 0.20, 0.55));
-    const radius = radiusT * maxRadius;
+    const baseRadius = radiusT * maxRadius;
+    // Subtle pulse on the radius: +/- 3% of maxRadius
+    const radius = baseRadius + pulseFactor * maxRadius * 0.03;
+
+    // --- Vignette edge opacity pulse ---
+    // Edges breathe slightly: darken/lighten by a small amount
+    const edgePulse = 0.08 * pulseFactor;
+
+    vignette.style.background = `radial-gradient(
+      circle ${radius}px at 50% 50%,
+      transparent 0%,
+      rgba(0, 0, 0, ${0.4 + edgePulse}) 40%,
+      rgba(0, 0, 0, ${0.75 + edgePulse}) 60%,
+      rgba(0, 0, 0, ${0.92 + edgePulse * 0.5}) 80%,
+      #000 100%
+    )`;
 
     // --- "Hello" text opacity ---
-    // 0–15%: fully visible on black screen
-    // 15–35%: fades out as vignette opens
     let helloOpacity;
     if (progress < 0.15) {
       helloOpacity = 1;
@@ -41,8 +56,6 @@
     }
 
     // --- "I'm Skye" text opacity ---
-    // 40–60%: fades in as video is revealed
-    // 60–100%: stays visible
     let skyeOpacity;
     if (progress < 0.40) {
       skyeOpacity = 0;
@@ -52,30 +65,11 @@
       skyeOpacity = 1;
     }
 
-    // Apply vignette gradient directly (CSS vars don't work in gradient size)
-    const vignette = document.getElementById('vignette');
-    vignette.style.background = `radial-gradient(
-      circle ${radius}px at 50% 50%,
-      transparent 0%,
-      rgba(0, 0, 0, 0.3) 60%,
-      rgba(0, 0, 0, 0.85) 80%,
-      #000 100%
-    )`;
-
-    // Apply text opacities
     root.style.setProperty('--hello-opacity', helloOpacity);
     root.style.setProperty('--skye-opacity', skyeOpacity);
 
-    ticking = false;
+    requestAnimationFrame(loop);
   }
 
-  window.addEventListener('scroll', function () {
-    if (!ticking) {
-      requestAnimationFrame(update);
-      ticking = true;
-    }
-  });
-
-  // Initial state
-  update();
+  requestAnimationFrame(loop);
 })();

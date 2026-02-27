@@ -24,6 +24,7 @@ body {
   height: 100vh;
   object-fit: cover;
   z-index: 1;
+  filter: brightness(0.55);
 }
 
 /* Vignette overlay — gradient set by JS */
@@ -58,9 +59,12 @@ body {
 }
 
 #text-hello h1 {
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
   font-weight: 300;
   letter-spacing: 0.05em;
+  text-shadow:
+    0 0 calc(var(--glow, 0) * 20px) rgba(255, 255, 255, var(--glow, 0)),
+    0 0 calc(var(--glow, 0) * 40px) rgba(255, 255, 255, calc(var(--glow, 0) * 0.5));
 }
 
 #text-skye {
@@ -68,10 +72,13 @@ body {
 }
 
 #text-skye p {
-  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
   font-weight: 300;
   line-height: 1.8;
   letter-spacing: 0.03em;
+  text-shadow:
+    0 0 calc(var(--glow, 0) * 20px) rgba(255, 255, 255, var(--glow, 0)),
+    0 0 calc(var(--glow, 0) * 40px) rgba(255, 255, 255, calc(var(--glow, 0) * 0.5));
 }
 
 /* Scroll spacer — drives the scroll length */
