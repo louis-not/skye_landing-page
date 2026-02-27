@@ -1,0 +1,6 @@
+.git
+.claude
+.dockerignore
+Dockerfile
+node_modules
+*.md
